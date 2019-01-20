@@ -1,0 +1,13 @@
+﻿/*Cuando ya haya visto el permiso ya sea aprobado o rechaazado, actualizar ese permiso en el campo VISTO*/
+CREATE OR REPLACE FUNCTION "PERMISOS".F_ACT_PERMISO_CVISTO(IN P_ID_PERMISO INTEGER, IN P_VISTO BOOLEAN) 
+RETURNS VOID AS 
+$BODY$
+ BEGIN
+	 UPDATE "PERMISOS"."TBL_PERMISOS"
+	   SET "VISTO" = P_VISTO
+	 WHERE "ID_PERMISO" = P_ID_PERMISO;
+ END;
+$BODY$ 
+LANGUAGE 'plpgsql';
+
+SELECT "PERMISOS".F_ACT_PERMISO_CVISTO(2, 'TRUE');

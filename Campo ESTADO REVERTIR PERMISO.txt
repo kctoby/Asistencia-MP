@@ -1,0 +1,4 @@
+--Campo extra para la TBL_PERMISOS
+ALTER TABLE "PERMISOS"."TBL_PERMISOS"
+  ADD COLUMN "ESTADO_REVERTIR_PERMISO" boolean NOT NULL DEFAULT FALSE;
+COMMENT ON COLUMN "PERMISOS"."TBL_PERMISOS"."ESTADO_REVERTIR_PERMISO" IS 'Este campo será modificado solo cuando un permiso se revierta (deje de tener validez) el cual se identificará como TRUE, caso contrario FALSE.';

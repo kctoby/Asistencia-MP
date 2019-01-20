@@ -1,0 +1,9 @@
+Anotaciones:
+
+Jefe del DPTO ADMON (Administración): 		  000001
+	Jefe del DPTO CONTA (Contabilidad): 	    000035
+	Jefe del DPTO SG (Servicios Generales) :    000181
+	Jefe del DPTO CS (Compras y suministros) :  000103
+
+Jefe del DPTO RRHH (Recursos Humanos): 		  000200
+	Jefe DPTO PERSONAL 		:	     000242

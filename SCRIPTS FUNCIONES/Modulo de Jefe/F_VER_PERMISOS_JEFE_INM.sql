@@ -1,0 +1,71 @@
+﻿--Mostrar todos los permisos que tiene un jefe inmediato
+
+--Recibe el ID_JEFE y devuelve ID_PERMISO, NOMBRE_COMPLETO_SOLICITANTE, TIPO_AUSENCIA
+CREATE OR REPLACE FUNCTION "PERMISOS".F_VER_PERMISOS_JEFE_INM(IN P_ID_JEFE_INM CHARACTER VARYING(10), 
+								         OUT P_ID_PERMISO INTEGER,
+									 OUT NOMBRE_COMPLETO TEXT,
+									 OUT TIPO_AUSENCIA CHARACTER VARYING(70)) 
+RETURNS SETOF record AS 
+$BODY$
+DECLARE
+ v_id_tipo_usuario_jtemporal integer;
+ v_id_tipo_usr_asignado integer;
+ v_id_tipo_usr_jefe integer;
+ v_id_jefe_inm character varying;
+ BEGIN
+
+	--Seleccionando le id del tipo usuario jefe temporal
+	SELECT A."ID_TIPO_USUARIO" INTO v_id_tipo_usuario_jtemporal 
+	FROM "PERMISOS"."TBL_TIPOS_USUARIOS" A
+	WHERE A."TIPO_USUARIO" = 'JEFE TEMPORAL';
+
+	--
+	SELECT B."ID_TIPO_USUARIO" INTO v_id_tipo_usr_jefe 
+	FROM "PERMISOS"."TBL_TIPOS_USUARIOS" B
+	WHERE B."TIPO_USUARIO" = 'JEFE';
+
+	--Seleccionar si el id tipo usuario del empleado es tipo usr jefe temporal
+	SELECT A."ID_TIPO_USUARIO" INTO v_id_tipo_usr_asignado 
+	FROM "PERMISOS"."TBL_EMPLEADOS_X_TUSUARIO" A
+	WHERE A."ID_EMPLEADO" = P_ID_JEFE_INM AND A."ESTADO" = TRUE;
+
+	--Seleccionar el jefe inmediato del "jefe empleado" que ingresó.
+	SELECT "ID_JEFE" INTO v_id_jefe_inm
+	FROM "PERMISOS"."TBL_EMPLEADOS" C
+	WHERE C."ID_EMPLEADO" = P_ID_JEFE_INM; 
+
+	IF(v_id_tipo_usr_asignado = v_id_tipo_usuario_jtemporal)THEN
+		--consulta
+		RETURN query SELECT B."ID_PERMISO", 
+				    A."PRIMER_SEGUNDO_NOMBRE" ||' ' || A."PRIMER_SEGUNDO_APELLIDO" AS NOMBRE_COMPLETO,
+				    C."TIPO_AUSENCIA"
+				FROM "PERMISOS"."TBL_EMPLEADOS" A
+				LEFT JOIN "PERMISOS"."TBL_PERMISOS" B
+				ON(A."ID_EMPLEADO" = B."ID_EMPLEADO")
+				INNER JOIN "PERMISOS"."TBL_TIPOS_AUSENCIAS" C
+				ON(B."ID_TIPO_AUSENCIA" = C."ID_TIPO_AUSENCIA")
+				WHERE B."ID_JEFE" = v_id_jefe_inm AND B."ESTADO_JEFE" = FALSE AND B."F_CAMBIO_ESTADO_JEFE" IS NULL
+				      AND B."ESTADO_JPERSONAL" = FALSE AND B."F_CAMBIO_ESTADO_JPERSONAL" IS NULL AND "ESTADO_REVERTIR_PERMISO" = FALSE
+				ORDER BY B."FECHA_SOLICITUD" ASC;
+		ELSE IF(v_id_tipo_usr_asignado = v_id_tipo_usr_jefe) THEN
+			RETURN query SELECT B."ID_PERMISO", 
+					A."PRIMER_SEGUNDO_NOMBRE" ||' ' || A."PRIMER_SEGUNDO_APELLIDO" AS NOMBRE_COMPLETO,
+					C."TIPO_AUSENCIA"
+					FROM "PERMISOS"."TBL_EMPLEADOS" A
+					LEFT JOIN "PERMISOS"."TBL_PERMISOS" B
+					ON(A."ID_EMPLEADO" = B."ID_EMPLEADO")
+					INNER JOIN "PERMISOS"."TBL_TIPOS_AUSENCIAS" C
+					ON(B."ID_TIPO_AUSENCIA" = C."ID_TIPO_AUSENCIA")
+					WHERE B."ID_JEFE" = P_ID_JEFE_INM AND B."ESTADO_JEFE" = FALSE AND B."F_CAMBIO_ESTADO_JEFE" IS NULL
+						AND B."ESTADO_JPERSONAL" = FALSE AND B."F_CAMBIO_ESTADO_JPERSONAL" IS NULL AND "ESTADO_REVERTIR_PERMISO" = FALSE
+					ORDER BY B."FECHA_SOLICITUD" ASC;		
+		END IF;
+	END IF;
+	
+
+   
+ END;
+$BODY$ 
+LANGUAGE 'plpgsql';
+
+SELECT * FROM "PERMISOS".F_VER_PERMISOS_JEFE_INM('000002');
